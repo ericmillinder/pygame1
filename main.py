@@ -6,6 +6,7 @@ from Screen import *
 from player import Player
 from plat import Platform
 from level import generate
+from debug import Debug
 
 logging.basicConfig(level=logging.INFO)
 
@@ -18,14 +19,15 @@ displaysurface = pygame.display.set_mode((WIDTH, HEIGHT))
 all_sprites = pygame.sprite.Group()
 platforms = pygame.sprite.Group()
 
-BottomPlatform = Platform(WIDTH, 20, 0, HEIGHT - 10)
+BottomPlatform = Platform(0, HEIGHT - 10)
 all_sprites.add(BottomPlatform)
 platforms.add(BottomPlatform)
 generate(platforms, all_sprites)
 
 P1 = Player(platforms)
-all_sprites.add(P1)
+# all_sprites.add(P1)
 
+debug = Debug()
 
 # TODO figure out how to reinit sprites and platforms since these vars are shadowing outer vars.. wrap in a class?
 def shake(sprites, platforms):
@@ -38,6 +40,8 @@ def shake(sprites, platforms):
 def game_loop():
     done = False
     while not done:
+        debug.update()
+
         for event in pygame.event.get():
             if event.type == QUIT:
                 done = True
@@ -53,7 +57,7 @@ def game_loop():
             for plat in platforms:
                 plat.rect.y += abs(P1.vel.y)
                 if plat.rect.top >= HEIGHT:
-                    plat.kill()
+                    plat.kill()  # removes the sprite from ALL groups it is in
 
         displaysurface.fill((0, 0, 0))
         P1.move()
@@ -65,8 +69,8 @@ def game_loop():
         pygame.display.update()
         FramePerSec.tick(FPS)
 
-        if not P1.alive():
-            pygame.quit()
+        if P1.pos.y > displaysurface.get_height():
+            done = True
 
     pygame.quit()
 

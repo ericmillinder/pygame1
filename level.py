@@ -10,10 +10,10 @@ def generate(platforms, all_sprites: pygame.sprite.Group):
     for x in range(random.randint(13, 35)):
         retry = True
         while retry:
-            pl = Platform(35, 10, random.randint(0, WIDTH - 25), random.randint(30, HEIGHT))
+            pl = Platform(random.randint(0, WIDTH - 25), random.randint(30, HEIGHT))
             retry = check(pl, platforms, retry)
         platforms.add(pl)
-    platforms.add(Platform(35, 10, 0, 100))
+    platforms.add(Platform(0, 100))
 
     for p in platforms:
         all_sprites.add(p)
