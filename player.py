@@ -41,7 +41,7 @@ class Player(pygame.sprite.Sprite):
         if self.directionFacing == LEFT:
             player_image = pygame.transform.flip(player_image, True, False)
 
-        self.display_surface.blit(player_image,self.rect)
+        self.display_surface.blit(player_image, self.rect)
 
     def jump(self):
         hits = pygame.sprite.spritecollide(self, self.platforms, False)

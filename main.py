@@ -1,5 +1,6 @@
 import pygame
 import logging
+import random
 from pygame.locals import *
 
 from Screen import *
@@ -14,7 +15,6 @@ pygame.init()
 pygame.display.set_caption("Game 1")
 
 FramePerSec = pygame.time.Clock()
-displaysurface = pygame.display.set_mode((WIDTH, HEIGHT))
 
 all_sprites = pygame.sprite.Group()
 platforms = pygame.sprite.Group()
@@ -28,6 +28,7 @@ P1 = Player(platforms)
 # all_sprites.add(P1)
 
 debug = Debug()
+
 
 # TODO figure out how to reinit sprites and platforms since these vars are shadowing outer vars.. wrap in a class?
 def shake(sprites, platforms):
@@ -52,24 +53,34 @@ def game_loop():
         elif pressed_keys[K_t]:
             shake(all_sprites, platforms)
 
-        if P1.rect.top <= HEIGHT / 3:
-            P1.pos.y += abs(P1.vel.y)
-            for plat in platforms:
-                plat.rect.y += abs(P1.vel.y)
-                if plat.rect.top >= HEIGHT:
-                    plat.kill()  # removes the sprite from ALL groups it is in
+        # if P1.rect.top <= HEIGHT / 3:
+        #     P1.pos.y += abs(P1.vel.y)
+        #     # because the player is moved up on sprite collision with a platform, the y
+        #     # pos stays low and platforms keep generating. Not good.
+        #     # platform = Platform(random.randint(0, WIDTH - 25), random.randint(30, int(HEIGHT / 3)))
+        #     # platforms.add(platform)
+        #     # all_sprites.add(platform)
+        #     for plat in platforms:
+        #         plat.rect.y += abs(P1.vel.y)
+        #         if plat.rect.top >= HEIGHT:
+        #             plat.kill()  # removes the sprite from ALL groups it is in
 
         displaysurface.fill((0, 0, 0))
+        full_surface.fill((0, 0, 0))
         P1.move()
         P1.update()
 
         for entity in all_sprites:
-            displaysurface.blit(entity.surf, entity.rect)
+            full_surface.blit(entity.surf, entity.rect)
 
+        display_rect = ((WIDTH - P1.pos.x) / 2, (HEIGHT - P1.pos.y) / 2, WIDTH, HEIGHT)
+        displaysurface.blit(full_surface, display_rect)
         pygame.display.update()
         FramePerSec.tick(FPS)
 
-        if P1.pos.y > displaysurface.get_height():
+        logging.getLogger("main").warning("Pos: {}".format(P1.pos))
+
+        if P1.pos.y > 1000:
             done = True
 
     pygame.quit()
