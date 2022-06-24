@@ -1,13 +1,9 @@
-import pygame
-import logging
-import random
 from pygame.locals import *
 
-from Screen import *
-from player import Player
-from plat import Platform
-from level import generate
 from debug import Debug
+from level import *
+from player import Player
+from cameragroup import YSortCameraGroup
 
 logging.basicConfig(level=logging.INFO)
 
@@ -16,7 +12,7 @@ pygame.display.set_caption("Game 1")
 
 FramePerSec = pygame.time.Clock()
 
-all_sprites = pygame.sprite.Group()
+all_sprites = YSortCameraGroup()
 platforms = pygame.sprite.Group()
 
 BottomPlatform = Platform(0, HEIGHT - 10)
@@ -70,15 +66,15 @@ def game_loop():
         P1.move()
         P1.update()
 
-        for entity in all_sprites:
-            full_surface.blit(entity.surf, entity.rect)
+        all_sprites.custom_draw()
 
-        display_rect = ((WIDTH - P1.pos.x) / 2, (HEIGHT - P1.pos.y) / 2, WIDTH, HEIGHT)
+        display_rect = ((WIDTH - P1.pos.x) / 2, (HEIGHT - P1.pos.y) / 2, WIDTH , HEIGHT)
+        logging.getLogger("main").warning("Pos: {}, Display Rect: {}".format(P1.pos, display_rect))
+
         displaysurface.blit(full_surface, display_rect)
         pygame.display.update()
         FramePerSec.tick(FPS)
 
-        logging.getLogger("main").warning("Pos: {}".format(P1.pos))
 
         if P1.pos.y > 1000:
             done = True
