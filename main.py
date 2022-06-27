@@ -1,11 +1,10 @@
 from pygame.locals import *
 
-from debug import Debug
 from level import *
 from player import Player
 from cameragroup import YSortCameraGroup
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 pygame.init()
 pygame.display.set_caption("Game 1")
@@ -21,9 +20,7 @@ platforms.add(BottomPlatform)
 generate(platforms, all_sprites)
 
 P1 = Player(platforms)
-# all_sprites.add(P1)
-
-debug = Debug()
+all_sprites.add(P1)
 
 
 # TODO figure out how to reinit sprites and platforms since these vars are shadowing outer vars.. wrap in a class?
@@ -35,10 +32,9 @@ def shake(sprites, platforms):
 
 
 def game_loop():
+    # full_surface = pygame.Surface(size=(1000, 2000))
     done = False
     while not done:
-        debug.update()
-
         for event in pygame.event.get():
             if event.type == QUIT:
                 done = True
@@ -61,17 +57,26 @@ def game_loop():
         #         if plat.rect.top >= HEIGHT:
         #             plat.kill()  # removes the sprite from ALL groups it is in
 
-        displaysurface.fill((0, 0, 0))
-        full_surface.fill((0, 0, 0))
-        P1.move()
-        P1.update()
+        displaysurface.fill('#71ddee')
+        # full_surface.fill((0, 0, 0))
+        # P1.move()
+        # P1.update()
 
-        all_sprites.custom_draw()
+        # all_sprites.custom_draw(P1)
+        all_sprites.update()
+        all_sprites.custom_draw(P1)
+        # all_sprites.draw(full_surface)
 
-        display_rect = ((WIDTH - P1.pos.x) / 2, (HEIGHT - P1.pos.y) / 2, WIDTH , HEIGHT)
-        logging.getLogger("main").warning("Pos: {}, Display Rect: {}".format(P1.pos, display_rect))
+        # display_rect = ((WIDTH - P1.pos.x) , (HEIGHT - P1.pos.y), WIDTH - P1.pos.x, HEIGHT - P1.pos.y)
+        # display_rect = pygame.Rect(0, 0, WIDTH, HEIGHT)
+        # display_rect.x = P1.pos.x - WIDTH // 2
+        # display_rect.y = P1.pos.y - HEIGHT // 2
 
-        displaysurface.blit(full_surface, display_rect)
+
+        # logging.getLogger("main").warning("Pos: {}, Display Rect: {}".format(P1.pos, display_rect))
+
+        # displaysurface.blit(full_surface, full_surface.get_rect(), area=display_rect)
+        # displaysurface.blit(full_surface, full_surface.get_rect())
         pygame.display.update()
         FramePerSec.tick(FPS)
 

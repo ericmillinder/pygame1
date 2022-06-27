@@ -8,12 +8,16 @@ from Screen import *
 LEVEL_HEIGHT = 2000
 LEVEL_WIDTH = 1000
 
+logger = logging.getLogger("platforms")
+logger.setLevel(level=logging.DEBUG)
+
 def generate(platforms, all_sprites: pygame.sprite.Group):
-    for x in range(random.randint(13, 35)):
+    for x in range(random.randint(40, 55)):
         retry = True
         while retry:
-            pl = Platform(random.randint(0, LEVEL_WIDTH - 25), random.randint(30, LEVEL_HEIGHT))
+            pl = Platform(random.randint(0, WIDTH - 25), random.randint(30, HEIGHT))
             retry = check(pl, platforms, retry)
+        logger.info("Platform at {}".format(pl.rect))
         platforms.add(pl)
     platforms.add(Platform(0, 100))
 
