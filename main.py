@@ -57,7 +57,7 @@ def game_loop():
         #         if plat.rect.top >= HEIGHT:
         #             plat.kill()  # removes the sprite from ALL groups it is in
 
-        displaysurface.fill('#71ddee')
+        displaysurface.fill('#000000')
         # full_surface.fill((0, 0, 0))
         # P1.move()
         # P1.update()

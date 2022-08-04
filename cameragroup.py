@@ -1,12 +1,12 @@
-from typing import List
+import logging
+
+import pygame.draw
 
 from Screen import *
 
 
 # This sprite group functions as a camera
 # The sprites are Y sorted
-from pygame.rect import Rect
-from pygame.surface import Surface
 
 
 class YSortCameraGroup(pygame.sprite.Group):
@@ -27,3 +27,11 @@ class YSortCameraGroup(pygame.sprite.Group):
         for sprite in self.sprites():
             offset_pos = sprite.rect.topleft - self.offset
             self.display_surface.blit(sprite.image, offset_pos)
+            if sprite == player:
+                logging.info("Drawing player's hitbox {}".format(sprite.hitbox))
+                pygame.draw.rect(self.display_surface, "#ff3333", sprite.hitbox, 1)
+
+            elif sprite.hitbox:
+                hitbox = sprite.hitbox.copy()
+                hitbox.topleft = sprite.hitbox.topleft - self.offset
+                pygame.draw.rect(self.display_surface, "#ff3333", hitbox, 1)
