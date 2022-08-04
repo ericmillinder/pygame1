@@ -28,7 +28,7 @@ class YSortCameraGroup(pygame.sprite.Group):
             offset_pos = sprite.rect.topleft - self.offset
             self.display_surface.blit(sprite.image, offset_pos)
             if sprite == player:
-                logging.info("Drawing player's hitbox {}".format(sprite.hitbox))
+                # logging.info("Drawing player's hitbox {}".format(sprite.hitbox))
                 pygame.draw.rect(self.display_surface, "#ff3333", sprite.hitbox, 1)
 
             elif sprite.hitbox:

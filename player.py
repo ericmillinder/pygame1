@@ -20,6 +20,9 @@ class Player(pygame.sprite.Sprite):
 
         self.images = {RIGHT: self.loadPlayerImage("assets/images/Jump__002.png"),
                        LEFT: pygame.transform.flip(self.loadPlayerImage("assets/images/Jump__002.png"), True, False)}
+        self.jump_cycle = [self.loadPlayerImage(f"assets/images/Jump__00{i}.png") for i in range(1, 9)]
+        self.run_cycle = [self.loadPlayerImage(f"assets/images/Run__00{i}.png") for i in range(1, 9)]
+
         self.image = self.images[LEFT]
         self.rect = self.image.get_rect()
         # The inflate method inflates around the center of the rectangle
@@ -34,10 +37,36 @@ class Player(pygame.sprite.Sprite):
         self.jumping = False
         self.doubleJumping = False
 
+        self.animation_index = 0
+
     def loadPlayerImage(self, path):
         image = pygame.image.load(path).convert_alpha()
         image = pygame.transform.scale(image, (64, 64))
         return image
+
+    def jump_animation(self):
+        logging.info("Animation index: {}".format(self.animation_index))
+        self.image = self.jump_cycle[int(self.animation_index)]
+        if self.directionFacing == LEFT:
+            self.image = pygame.transform.flip(self.image, True, False)
+
+        max_jump_cycle_index = len(self.jump_cycle) - 1
+        if self.animation_index < max_jump_cycle_index:
+            self.animation_index += 0.5
+        else:
+            self.animation_index = max_jump_cycle_index
+
+    def run_animation(self):
+        logging.info("Animation index: {}".format(self.animation_index))
+        self.image = self.run_cycle[int(self.animation_index)]
+        if self.directionFacing == LEFT:
+            self.image = pygame.transform.flip(self.image, True, False)
+
+        max_cycle_index = len(self.run_cycle) - 1
+        if self.animation_index < max_cycle_index:
+            self.animation_index += 1
+        else:
+            self.animation_index = 0
 
     def update(self):
         self.move()
@@ -58,6 +87,11 @@ class Player(pygame.sprite.Sprite):
             self.image = self.images[LEFT]
         if self.directionFacing == RIGHT:
             self.image = self.images[RIGHT]
+
+        if self.jumping:
+            self.jump_animation()
+        elif int(self.vel.x) != 0:
+            self.run_animation()
 
         # player_image = self.image
         # if self.directionFacing == LEFT:
@@ -99,6 +133,7 @@ class Player(pygame.sprite.Sprite):
         # Ensure we are currently in contact with something
         hits = pygame.sprite.spritecollide(self, self.platforms, False)
         if hits:
+            self.animation_index = 0
             self.jumping = True
             self.vel.y = -10
         elif not self.doubleJumping and self.vel.y > 0:
