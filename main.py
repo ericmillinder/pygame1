@@ -1,47 +1,30 @@
-import pygame
-import logging
 from pygame.locals import *
 
-from Screen import *
+from level import *
 from player import Player
-from plat import Platform
-from level import generate
-from debug import Debug
+from cameragroup import YSortCameraGroup
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 pygame.init()
 pygame.display.set_caption("Game 1")
 
 FramePerSec = pygame.time.Clock()
-displaysurface = pygame.display.set_mode((WIDTH, HEIGHT))
 
-all_sprites = pygame.sprite.Group()
+all_sprites = YSortCameraGroup()
 platforms = pygame.sprite.Group()
 
-BottomPlatform = Platform(0, HEIGHT - 10)
-all_sprites.add(BottomPlatform)
-platforms.add(BottomPlatform)
 generate(platforms, all_sprites)
 
 P1 = Player(platforms)
-# all_sprites.add(P1)
+all_sprites.add(P1)
 
-debug = Debug()
-
-# TODO figure out how to reinit sprites and platforms since these vars are shadowing outer vars.. wrap in a class?
-def shake(sprites, platforms):
-    sprites = pygame.sprite.Group()
-    platforms = pygame.sprite.Group()
-    generate(platforms, sprites)
-    all_sprites.add(P1)
+background = pygame.image.load("assets/images/training.png").convert_alpha()
 
 
 def game_loop():
     done = False
     while not done:
-        debug.update()
-
         for event in pygame.event.get():
             if event.type == QUIT:
                 done = True
@@ -49,27 +32,18 @@ def game_loop():
         pressed_keys = pygame.key.get_pressed()
         if pressed_keys[K_q]:
             done = True
-        elif pressed_keys[K_t]:
-            shake(all_sprites, platforms)
 
-        if P1.rect.top <= HEIGHT / 3:
-            P1.pos.y += abs(P1.vel.y)
-            for plat in platforms:
-                plat.rect.y += abs(P1.vel.y)
-                if plat.rect.top >= HEIGHT:
-                    plat.kill()  # removes the sprite from ALL groups it is in
+        displaysurface.fill('#000000')
+        displaysurface.blit(background, (0,0))
 
-        displaysurface.fill((0, 0, 0))
-        P1.move()
-        P1.update()
-
-        for entity in all_sprites:
-            displaysurface.blit(entity.surf, entity.rect)
+        all_sprites.update()
+        all_sprites.custom_draw(P1)
 
         pygame.display.update()
         FramePerSec.tick(FPS)
 
-        if P1.pos.y > displaysurface.get_height():
+
+        if P1.pos.y > 1000:
             done = True
 
     pygame.quit()

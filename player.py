@@ -10,6 +10,10 @@ vec = pygame.math.Vector2
 LEFT = 0
 RIGHT = 1
 
+IDLE=0
+RUNNING=1
+JUMPING=2
+
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, platforms):
@@ -17,35 +21,104 @@ class Player(pygame.sprite.Sprite):
         self.display_surface = pygame.display.get_surface()
 
         self.platforms = platforms
-        self.surf = pygame.image.load("assets/images/sonic.png").convert_alpha()
-        self.rect = self.surf.get_rect()
 
-        self.pos = vec(20, Screen.HEIGHT - 50)
+        self.images = {RIGHT: self.loadPlayerImage("assets/images/Jump__002.png"),
+                       LEFT: pygame.transform.flip(self.loadPlayerImage("assets/images/Jump__002.png"), True, False)}
+        self.jump_cycle = [self.loadPlayerImage(f"assets/images/Jump__00{i}.png") for i in range(1, 9)]
+        self.run_cycle = [self.loadPlayerImage(f"assets/images/Run__00{i}.png") for i in range(1, 9)]
+        self.idle_cycle = [self.loadPlayerImage(f"assets/images/Idle__00{i}.png") for i in range(1, 9)]
+
+        self.image = self.images[LEFT]
+        self.rect = self.image.get_rect()
+        # The inflate method inflates around the center of the rectangle
+        self.hitbox = self.rect.inflate(-10, -10)
+        # self.hitbox = Rect(self.rect.bottomleft, (self.rect.width, 10))
+
+        self.pos = vec(Screen.WIDTH // 2, Screen.HEIGHT // 2)
         self.vel = vec(0, 0)
-        self.acc = vec(0, 0)
+        self.acc = vec(0, 0.5)
 
         self.directionFacing = RIGHT
         self.jumping = False
         self.doubleJumping = False
 
-    def update(self):
+        self.state = IDLE
+        self.animation_index = 0
 
+    def loadPlayerImage(self, path):
+        image = pygame.image.load(path).convert_alpha()
+        image = pygame.transform.scale(image, (image.get_width() / 8, image.get_height() / 8))
+        return image
+
+    def animate(self, cycle, rate, hold=False):
+        self.image = cycle[int(self.animation_index)]
+        if self.directionFacing == LEFT:
+            self.image = pygame.transform.flip(self.image, True, False)
+
+        max_cycle_index = len(cycle) - 1
+        if self.animation_index < max_cycle_index:
+            self.animation_index += rate
+        else:
+            if hold:
+                self.animation_index = max_cycle_index
+            else:
+                self.animation_index = 0
+
+    def update(self):
+        self.move()
+
+        # check collision with platforms
         hits = pygame.sprite.spritecollide(self, self.platforms, False)
         if hits:
             if self.vel.y > 0:
-                self.pos.y = hits[0].rect.top + 1
+                if self.rect.bottom > hits[0].rect.top:
+                    self.pos.y = hits[0].rect.top + 1
                 self.vel.y = 0
                 self.jumping = False
                 self.doubleJumping = False
-        player_image = self.surf
-        if self.directionFacing == LEFT:
-            player_image = pygame.transform.flip(player_image, True, False)
+                self.stateTo(IDLE)
 
-        self.display_surface.blit(player_image,self.rect)
+        if self.directionFacing == LEFT:
+            self.image = self.images[LEFT]
+        if self.directionFacing == RIGHT:
+            self.image = self.images[RIGHT]
+
+        if self.state == JUMPING:
+            self.animate(self.jump_cycle, 0.6, hold=True)
+        elif int(self.vel.x) != 0:
+            self.animate(self.run_cycle, 0.5)
+        else:
+            self.animate(self.idle_cycle, 0.2)
+
+    def stateTo(self, state):
+        if self.state == state:
+            return
+
+        self.state = state
+        self.animation_index = 0
+
+    def collision(self, direction):
+        if direction == 'horizontal':
+            for sprite in self.platforms:
+                if sprite.hitbox.colliderect(self.hitbox):
+                    if self.vel.x > 0:  # moving right
+                        self.hitbox.right = sprite.hitbox.left
+                    if self.vel.x < 0:  # moving left
+                        self.hitbox.left = sprite.hitbox.right
+
+        if direction == 'vertical':
+            for sprite in self.platforms:
+                if sprite.hitbox.colliderect(self.hitbox):
+                    if self.vel.y > 0:  # moving down
+                        self.hitbox.bottom = sprite.hitbox.top
+                    if self.vel.y < 0:  # moving up
+                        self.hitbox.top = sprite.hitbox.bottom
 
     def jump(self):
+        # Ensure we are currently in contact with something
         hits = pygame.sprite.spritecollide(self, self.platforms, False)
         if hits:
+            self.stateTo(JUMPING)
             self.jumping = True
             self.vel.y = -10
         elif not self.doubleJumping and self.vel.y > 0:
@@ -83,3 +156,9 @@ class Player(pygame.sprite.Sprite):
             self.pos.x = 0
 
         self.rect.midbottom = self.pos
+
+        self.hitbox.x += self.pos.x * self.vel.x
+        self.collision('horizontal')
+        self.hitbox.y += self.pos.y * self.vel.y
+        self.collision('vertical')
+        # self.rect.center = self.hitbox.center
