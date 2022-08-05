@@ -11,15 +11,16 @@ LEVEL_WIDTH = 1000
 logger = logging.getLogger("platforms")
 logger.setLevel(level=logging.DEBUG)
 
+
 def generate(platforms, all_sprites: pygame.sprite.Group):
-    for x in range(random.randint(10, 30)):
+    for x in range(random.randint(10, 20)):
         retry = True
         while retry:
-            pl = Platform(random.randint(0, WIDTH - 25), random.randint(30, HEIGHT))
+            pl = Platform(random.randint(65, WIDTH - 65), random.randint(100, HEIGHT - 50))
             retry = check(pl, platforms, retry)
         logger.info("Platform at {}".format(pl.rect))
         platforms.add(pl)
-    platforms.add(Platform(0, 100))
+    platforms.add(Platform(0, HEIGHT - 20, width=WIDTH))  # full floor
 
     for p in platforms:
         all_sprites.add(p)
