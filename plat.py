@@ -9,3 +9,4 @@ class Platform(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image, (width, self.image.get_height()))
         self.rect = self.image.get_rect(topleft=(x, y))
         self.hitbox = self.rect
+        self.collided = False

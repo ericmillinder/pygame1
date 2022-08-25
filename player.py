@@ -10,13 +10,13 @@ vec = pygame.math.Vector2
 LEFT = 0
 RIGHT = 1
 
-IDLE=0
-RUNNING=1
-JUMPING=2
+IDLE = 0
+RUNNING = 1
+JUMPING = 2
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, platforms):
+    def __init__(self, platforms: pygame.sprite.Group):
         super().__init__()
         self.display_surface = pygame.display.get_surface()
 
@@ -32,6 +32,7 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         # The inflate method inflates around the center of the rectangle
         self.hitbox = self.rect.inflate(-10, -10)
+        self.feetbox = Rect((self.rect.bottomleft), (self.rect.width - 12, 10))
         # self.hitbox = Rect(self.rect.bottomleft, (self.rect.width, 10))
 
         self.pos = vec(Screen.WIDTH // 2, Screen.HEIGHT // 2)
@@ -67,17 +68,6 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         self.move()
 
-        # check collision with platforms
-        hits = pygame.sprite.spritecollide(self, self.platforms, False)
-        if hits:
-            if self.vel.y > 0:
-                if self.rect.bottom > hits[0].rect.top:
-                    self.pos.y = hits[0].rect.top + 1
-                self.vel.y = 0
-                self.jumping = False
-                self.doubleJumping = False
-                self.stateTo(IDLE)
-
         if self.directionFacing == LEFT:
             self.image = self.images[LEFT]
         if self.directionFacing == RIGHT:
@@ -97,22 +87,27 @@ class Player(pygame.sprite.Sprite):
         self.state = state
         self.animation_index = 0
 
-    def collision(self, direction):
+    def collision_with_platform(self, box, direction):
         if direction == 'horizontal':
             for sprite in self.platforms:
-                if sprite.hitbox.colliderect(self.hitbox):
+                if sprite.hitbox.colliderect(box):
                     if self.vel.x > 0:  # moving right
-                        self.hitbox.right = sprite.hitbox.left
+                        logging.info("Box {} hit {}".format(box, sprite.hitbox))
                     if self.vel.x < 0:  # moving left
-                        self.hitbox.left = sprite.hitbox.right
+                        logging.info("Box {} hit {}".format(box, sprite.hitbox))
 
         if direction == 'vertical':
             for sprite in self.platforms:
-                if sprite.hitbox.colliderect(self.hitbox):
+                if sprite.hitbox.colliderect(box):
                     if self.vel.y > 0:  # moving down
-                        self.hitbox.bottom = sprite.hitbox.top
+                        logging.info("Moving downwards at {} and hit {}".format(box, sprite.hitbox))
+                        self.pos.y = sprite.rect.y + 1
+                        self.vel.y = 0
+                        self.jumping = False
+                        self.doubleJumping = False
+                        self.stateTo(IDLE)
                     if self.vel.y < 0:  # moving up
-                        self.hitbox.top = sprite.hitbox.bottom
+                        logging.info("Box {} hit {}".format(box, sprite.hitbox))
 
     def jump(self):
         # Ensure we are currently in contact with something
@@ -150,15 +145,50 @@ class Player(pygame.sprite.Sprite):
         self.vel += self.acc
         self.pos += self.vel + ACC * self.acc
 
+
         if self.pos.x > WIDTH:
             self.pos.x = WIDTH
         if self.pos.x < 0:
             self.pos.x = 0
 
+        self.feetbox.x = self.pos.x - (self.rect.width / 2)
+        self.feetbox.y = self.pos.y - (self.feetbox.height) - 2
+
+        # self.hitbox.x += self.pos.x * self.vel.x
+        # self.collision(self.feetbox, 'horizontal')
+        # self.hitbox.y += self.pos.y * self.vel.y
+        # self.collision(self.feetbox, 'vertical')
+        # self.rect.center = self.hitbox.center
+
+        # check collision with platforms
+        hit_platform = None
+        for platform in self.platforms:
+            hits = self.feetbox.colliderect(platform.rect)
+            if hits:
+                hit_platform = platform
+                platform.collided = True
+
+        self.collision_with_platform(self.feetbox, 'vertical')
+
+        self.feetbox.x = self.pos.x - (self.rect.width / 2)
+        self.feetbox.y = self.pos.y - (self.feetbox.height) - 1
+
+        #
+        # if hit_platform:
+        #     if self.vel.y > 0:
+        #         if self.feetbox.bottom > hit_platform.rect.top:
+        #             self.pos.y = hit_platform.rect.top
+        #         self.vel.y = 0
+        #         self.jumping = False
+        #         self.doubleJumping = False
+        #         self.stateTo(IDLE)
+
+
         self.rect.midbottom = self.pos
 
-        self.hitbox.x += self.pos.x * self.vel.x
-        self.collision('horizontal')
-        self.hitbox.y += self.pos.y * self.vel.y
-        self.collision('vertical')
-        # self.rect.center = self.hitbox.center
+
+    def draw(self, offset, surface):
+        feetbox = self.feetbox.copy()
+        feetbox.topleft = self.feetbox.topleft - offset
+        # logging.info("feetbox: {}".format(feetbox))
+        pygame.draw.rect(surface, "red", feetbox, 1)

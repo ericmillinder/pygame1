@@ -34,4 +34,10 @@ class YSortCameraGroup(pygame.sprite.Group):
             elif sprite.hitbox:
                 hitbox = sprite.hitbox.copy()
                 hitbox.topleft = sprite.hitbox.topleft - self.offset
-                pygame.draw.rect(self.display_surface, "#ff3333", hitbox, 1)
+                color = "#ff3333"
+                if sprite.collided:
+                    color = "blue"
+                pygame.draw.rect(self.display_surface, color, hitbox, 1)
+
+            if hasattr(sprite, "draw"):
+                sprite.draw(self.offset, displaysurface)
